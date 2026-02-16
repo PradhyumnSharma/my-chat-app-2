@@ -3,32 +3,38 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server);
 
-// Serve files from the 'public' folder
+// Allow big images (10MB limit)
+const io = new Server(server, {
+  maxHttpBufferSize: 1e7,
+});
+
 app.use(express.static("public"));
 
-// 1. Memory Storage for Messages
-const chatHistory = [];
+// Memory storage
+let chatHistory = [];
 
 io.on("connection", (socket) => {
-  console.log("A user connected");
-
-  // 2. Send all old messages to the new user immediately
+  // 1. Load old messages for new user
   chatHistory.forEach((msg) => {
     socket.emit("chat message", msg);
   });
 
-  // 3. Listen for new messages
+  // 2. Listen for new messages
   socket.on("chat message", (msg) => {
-    // Save to history
     chatHistory.push(msg);
-    // Send to everyone
     io.emit("chat message", msg);
+  });
+
+  // 3. Listen for Clear Chat
+  socket.on("clear chat", () => {
+    chatHistory = []; // Wipe server memory
+    io.emit("chat cleared"); // Tell everyone to wipe screens
   });
 });
 
-// Start the server
-server.listen(3000, () => {
-  console.log("Server running on port 3000");
+// Use the port Render gives us, or 3000 locally
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
 });
