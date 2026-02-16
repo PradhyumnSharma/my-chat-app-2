@@ -24,7 +24,7 @@
         flex-direction: column;
       }
 
-      /* --- LOGIN --- */
+      /* --- LOGIN & MODALS --- */
       #login-screen,
       #leaderboard-modal {
         position: fixed;
@@ -71,7 +71,7 @@
         cursor: pointer;
       }
 
-      /* --- LEADERBOARD MODAL --- */
+      /* --- LEADERBOARD STYLE --- */
       #leaderboard-modal {
         display: none;
         z-index: 4000;
@@ -191,7 +191,6 @@
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         border-radius: 4px;
       }
-
       .game-controls {
         display: flex;
         flex-direction: column;
@@ -403,7 +402,7 @@
 
     <div id="leaderboard-modal">
       <div class="leaderboard-box">
-        <h2 style="margin: 0; color: orange">🏆 Leaderboard 2.0</h2>
+        <h2 style="margin: 0; color: orange">🏆 Leaderboard</h2>
         <div id="score-list">Loading...</div>
         <button
           class="big-btn"
@@ -417,9 +416,7 @@
 
     <div id="game-container">
       <h2 style="color: orange; margin: 5px">Prady Bird 🐦</h2>
-
       <canvas id="gameCanvas" width="320" height="480"></canvas>
-
       <div class="game-controls">
         <div class="control-row">
           <button
@@ -562,7 +559,7 @@
         scrollToBottom();
       });
 
-      // --- VIDEO ---
+      // --- VIDEO (JITSI) ---
       function joinCall() {
         socket.emit("join video");
         document.getElementById("video-container").style.display = "flex";
@@ -606,19 +603,12 @@
         else badge.classList.remove("counter-active");
       });
 
-      // --- GAME LOGIC (FAST MODE) ---
+      // --- GAME LOGIC ---
       const canvas = document.getElementById("gameCanvas");
       const ctx = canvas.getContext("2d");
-
-      // LOAD BIRD IMAGE
       const birdImg = new Image();
-      // Using a reliable Github hosted sprite for Flappy Bird
       birdImg.src =
         "https://raw.githubusercontent.com/samuelcust/flappy-bird-assets/master/sprites/yellowbird-midflap.png";
-
-      // PHYSICS UPDATE: FAST (Original Feel)
-      // Gravity: 0.4 (Pulls down faster)
-      // Jump: -6 (Snappy jump)
       let bird = {
         x: 50,
         y: 150,
@@ -628,7 +618,6 @@
         gravity: 0.4,
         jump: -6,
       };
-
       let pipes = [];
       let frame = 0;
       let score = 0;
@@ -676,14 +665,11 @@
       function drawGameLoop() {
         ctx.fillStyle = "#70c5ce";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // DRAW IMAGE INSTEAD OF RECTANGLE
         ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
-
         ctx.fillStyle = "#228b22";
         for (let i = 0; i < pipes.length; i++) {
           let p = pipes[i];
-          ctx.fillRect(p.x, 0, 50, p.topHeight); // Wider pipes
+          ctx.fillRect(p.x, 0, 50, p.topHeight);
           ctx.fillRect(p.x, p.topHeight + p.gap, 50, canvas.height);
         }
         ctx.fillStyle = "white";
@@ -693,16 +679,14 @@
       function updateGame() {
         bird.velocity += bird.gravity;
         bird.y += bird.velocity;
-
-        // Faster Pipes: Interval 100 (was 150)
         if (frame % 100 === 0) {
-          let gap = 120; // Standard Gap
+          let gap = 120;
           let topHeight = Math.random() * (canvas.height / 2);
           pipes.push({ x: canvas.width, topHeight: topHeight, gap: gap });
         }
         for (let i = 0; i < pipes.length; i++) {
           let p = pipes[i];
-          p.x -= 2; // Normal Speed (was 1.5)
+          p.x -= 2;
           if (
             bird.x < p.x + 50 &&
             bird.x + bird.width > p.x &&

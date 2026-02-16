@@ -13,17 +13,17 @@ app.use(express.static("public"));
 // --- STORAGE ---
 let chatHistory = [];
 let videoUsers = new Set();
-let leaderboard = {}; // DICTIONARY (Prevents Duplicates)
+let leaderboard = {}; // Dictionary to prevent duplicates
 
 io.on("connection", (socket) => {
-  // 1. Send Data
+  // 1. Send History & Data
   chatHistory.forEach((msg) => {
     socket.emit("chat message", msg);
   });
   socket.emit("update video count", videoUsers.size);
   sendLeaderboard(socket);
 
-  // 2. Chat
+  // 2. Chat Logic
   socket.on("chat message", (msg) => {
     chatHistory.push(msg);
     io.emit("chat message", msg);
@@ -34,7 +34,7 @@ io.on("connection", (socket) => {
     io.emit("chat cleared");
   });
 
-  // 3. Video
+  // 3. Video Logic
   socket.on("join video", () => {
     videoUsers.add(socket.id);
     io.emit("update video count", videoUsers.size);
@@ -52,12 +52,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 4. SMART LEADERBOARD
+  // 4. Smart Leaderboard Logic
   socket.on("submit score", (data) => {
     let name = data.name || "Anonymous";
     let score = parseInt(data.score);
 
-    // Only update if NEW score is HIGHER
+    // Only update if the new score is higher
     if (!leaderboard[name] || score > leaderboard[name]) {
       leaderboard[name] = score;
     }
@@ -74,8 +74,8 @@ function sendLeaderboard(destination) {
   destination.emit("update leaderboard", sortedList.slice(0, 50));
 }
 
-// BACK TO PORT 3000 (Standard)
-const PORT = process.env.PORT || 3000;
+// FORCE PORT 3002 TO AVOID ZOMBIE SERVERS
+const PORT = process.env.PORT || 3002;
 server.listen(PORT, () => {
   console.log("Server running on port " + PORT);
 });
