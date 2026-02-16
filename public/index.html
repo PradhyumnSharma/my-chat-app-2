@@ -24,8 +24,9 @@
         flex-direction: column;
       }
 
-      /* --- LOGIN SCREEN --- */
-      #login-screen {
+      /* --- LOGIN --- */
+      #login-screen,
+      #leaderboard-modal {
         position: fixed;
         top: 0;
         left: 0;
@@ -38,7 +39,8 @@
         align-items: center;
         z-index: 9999;
       }
-      .login-box {
+      .login-box,
+      .leaderboard-box {
         background: rgba(255, 255, 255, 0.05);
         padding: 30px;
         border-radius: 20px;
@@ -67,6 +69,39 @@
         color: white;
         font-weight: bold;
         cursor: pointer;
+      }
+
+      /* --- LEADERBOARD MODAL --- */
+      #leaderboard-modal {
+        display: none;
+        z-index: 4000;
+      }
+      .leaderboard-box {
+        height: 60%;
+        display: flex;
+        flex-direction: column;
+        background: #16213e;
+        border: 2px solid orange;
+        box-shadow: 0 0 30px rgba(255, 165, 0, 0.3);
+      }
+      #score-list {
+        flex-grow: 1;
+        overflow-y: auto;
+        text-align: left;
+        margin: 10px 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 10px;
+      }
+      .score-item {
+        padding: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.9rem;
+        display: flex;
+        justify-content: space-between;
+      }
+      .score-item b {
+        color: #e94560;
       }
 
       /* --- TOP BAR --- */
@@ -105,8 +140,6 @@
         font-weight: bold;
         white-space: nowrap;
       }
-
-      /* --- VIDEO BUTTON & COUNTER --- */
       .call-btn {
         background: rgba(77, 181, 255, 0.15);
         border-color: #4db5ff;
@@ -114,6 +147,11 @@
         display: flex;
         align-items: center;
         gap: 6px;
+      }
+      .game-btn {
+        background: rgba(255, 165, 0, 0.15);
+        border-color: orange;
+        color: orange;
       }
       .counter-badge {
         background: rgba(255, 255, 255, 0.2);
@@ -127,6 +165,54 @@
         background: #ff4b2b;
         color: white;
         box-shadow: 0 0 8px #ff4b2b;
+      }
+
+      /* --- GAME CONTAINER --- */
+      #game-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 20, 35, 1);
+        z-index: 3000;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 20px;
+      }
+      canvas {
+        background: #000;
+        border: 2px solid #333;
+        max-width: 100%;
+        height: 60vh;
+        margin-bottom: 20px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        border-radius: 4px;
+      }
+
+      .game-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 80%;
+        max-width: 300px;
+      }
+      .control-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .big-btn {
+        padding: 15px;
+        font-size: 1rem;
+        flex-grow: 1;
+        border-radius: 12px;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        color: white;
       }
 
       /* --- VIDEO CONTAINER --- */
@@ -217,7 +303,7 @@
         text-decoration: none;
       }
 
-      /* --- FIXED INPUT BAR --- */
+      /* --- INPUT BAR --- */
       #form {
         background: rgba(22, 33, 62, 0.98);
         backdrop-filter: blur(15px);
@@ -252,7 +338,6 @@
         color: white;
         flex-shrink: 0;
       }
-
       #send-btn {
         background: #e94560;
         border: none;
@@ -269,8 +354,6 @@
         flex-shrink: 0;
         transition: 0.2s;
       }
-
-      /* --- MOBILE/DESKTOP SWITCHER --- */
       .desktop-text {
         display: block;
         padding: 0 20px;
@@ -318,6 +401,52 @@
       </div>
     </div>
 
+    <div id="leaderboard-modal">
+      <div class="leaderboard-box">
+        <h2 style="margin: 0; color: orange">🏆 Leaderboard 2.0</h2>
+        <div id="score-list">Loading...</div>
+        <button
+          class="big-btn"
+          onclick="document.getElementById('leaderboard-modal').style.display='none'"
+          style="background: #555; padding: 10px; margin-top: 10px"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+
+    <div id="game-container">
+      <h2 style="color: orange; margin: 5px">Prady Bird 🐦</h2>
+
+      <canvas id="gameCanvas" width="320" height="480"></canvas>
+
+      <div class="game-controls">
+        <div class="control-row">
+          <button
+            class="big-btn"
+            style="background: #28a745"
+            onclick="startGame()"
+          >
+            ▶ Play Again
+          </button>
+          <button
+            class="big-btn"
+            style="background: orange"
+            onclick="document.getElementById('leaderboard-modal').style.display='flex'"
+          >
+            🏆 Rank
+          </button>
+        </div>
+        <button
+          class="big-btn"
+          style="background: #dc3545"
+          onclick="closeGame()"
+        >
+          ❌ Exit Game
+        </button>
+      </div>
+    </div>
+
     <div id="video-container">
       <div id="jitsi-frame"></div>
       <button id="exit-call-btn" onclick="exitCall()">
@@ -328,6 +457,7 @@
     <div id="top-bar">
       <div class="app-name">Prady's Chat</div>
       <div class="nav-buttons">
+        <button class="btn game-btn" onclick="openGame()">🎮 Games</button>
         <button class="btn call-btn" onclick="joinCall()">
           📹 <span id="vid-counter" class="counter-badge">0</span>
         </button>
@@ -351,9 +481,7 @@
       >
         📎
       </button>
-
       <input id="input" autocomplete="off" placeholder="Message..." />
-
       <button id="send-btn">
         <span class="desktop-text">Send</span>
         <span class="mobile-icon">➤</span>
@@ -378,6 +506,63 @@
         }
       }
 
+      // --- CHAT ---
+      function scrollToBottom() {
+        messages.scrollTop = messages.scrollHeight;
+      }
+      document
+        .getElementById("clear-btn")
+        .addEventListener("click", function () {
+          if (confirm("Delete history?")) {
+            socket.emit("clear chat");
+          }
+        });
+      socket.on("chat cleared", function () {
+        messages.innerHTML = "";
+      });
+      var form = document.getElementById("form");
+      var input = document.getElementById("input");
+      var fileInput = document.getElementById("fileInput");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (input.value && nickname) {
+          socket.emit("chat message", { name: nickname, text: input.value });
+          input.value = "";
+        }
+      });
+      fileInput.addEventListener("change", function () {
+        var file = fileInput.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          socket.emit("chat message", {
+            name: nickname,
+            text: input.value,
+            file: e.target.result,
+            fileType: file.type.split("/")[0],
+          });
+          input.value = "";
+          fileInput.value = "";
+        };
+        reader.readAsDataURL(file);
+      });
+      socket.on("chat message", function (data) {
+        var item = document.createElement("li");
+        if (data.name === nickname) item.classList.add("my-message");
+        var html = `<div class="msg-name">${data.name}</div>`;
+        if (data.text) html += `<div class="msg-text">${data.text}</div>`;
+        if (data.file) {
+          if (data.fileType === "image") {
+            html += `<img src="${data.file}" class="chat-image" onload="scrollToBottom()" />`;
+            html += `<a href="${data.file}" download="image.png" class="download-link">⬇️ Save</a>`;
+          }
+        }
+        item.innerHTML = html;
+        messages.appendChild(item);
+        scrollToBottom();
+      });
+
+      // --- VIDEO ---
       function joinCall() {
         socket.emit("join video");
         document.getElementById("video-container").style.display = "flex";
@@ -409,13 +594,11 @@
         };
         api = new JitsiMeetExternalAPI(domain, options);
       }
-
       function exitCall() {
         if (api) api.dispose();
         document.getElementById("video-container").style.display = "none";
         socket.emit("leave video");
       }
-
       socket.on("update video count", function (count) {
         var badge = document.getElementById("vid-counter");
         badge.innerText = count;
@@ -423,65 +606,155 @@
         else badge.classList.remove("counter-active");
       });
 
-      function scrollToBottom() {
-        messages.scrollTop = messages.scrollHeight;
+      // --- GAME LOGIC (FAST MODE) ---
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // LOAD BIRD IMAGE
+      const birdImg = new Image();
+      // Using a reliable Github hosted sprite for Flappy Bird
+      birdImg.src =
+        "https://raw.githubusercontent.com/samuelcust/flappy-bird-assets/master/sprites/yellowbird-midflap.png";
+
+      // PHYSICS UPDATE: FAST (Original Feel)
+      // Gravity: 0.4 (Pulls down faster)
+      // Jump: -6 (Snappy jump)
+      let bird = {
+        x: 50,
+        y: 150,
+        width: 34,
+        height: 24,
+        velocity: 0,
+        gravity: 0.4,
+        jump: -6,
+      };
+
+      let pipes = [];
+      let frame = 0;
+      let score = 0;
+      let gameRunning = false;
+      let gameWaitingToStart = true;
+      let gameInterval;
+
+      function openGame() {
+        document.getElementById("game-container").style.display = "flex";
+        resetGame();
       }
-
-      document
-        .getElementById("clear-btn")
-        .addEventListener("click", function () {
-          if (confirm("Delete history?")) {
-            socket.emit("clear chat");
-          }
-        });
-      socket.on("chat cleared", function () {
-        messages.innerHTML = "";
-      });
-
-      var form = document.getElementById("form");
-      var input = document.getElementById("input");
-      var fileInput = document.getElementById("fileInput");
-
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        if (input.value && nickname) {
-          socket.emit("chat message", { name: nickname, text: input.value });
-          input.value = "";
+      function closeGame() {
+        document.getElementById("game-container").style.display = "none";
+        gameRunning = false;
+        clearInterval(gameInterval);
+      }
+      function resetGame() {
+        gameRunning = false;
+        gameWaitingToStart = true;
+        clearInterval(gameInterval);
+        bird.y = 150;
+        bird.velocity = 0;
+        pipes = [];
+        score = 0;
+        frame = 0;
+        drawGameLoop();
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText("Tap / Space to Start", 70, 240);
+      }
+      function startGame() {
+        if (gameRunning) return;
+        resetGame();
+      }
+      function gameInput() {
+        if (gameWaitingToStart) {
+          gameWaitingToStart = false;
+          gameRunning = true;
+          gameInterval = setInterval(updateGame, 20);
+          bird.velocity = bird.jump;
+        } else if (gameRunning) {
+          bird.velocity = bird.jump;
         }
-      });
+      }
+      function drawGameLoop() {
+        ctx.fillStyle = "#70c5ce";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      fileInput.addEventListener("change", function () {
-        var file = fileInput.files[0];
-        if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          socket.emit("chat message", {
-            name: nickname,
-            text: input.value,
-            file: e.target.result,
-            fileType: file.type.split("/")[0],
-          });
-          input.value = "";
-          fileInput.value = "";
-        };
-        reader.readAsDataURL(file);
-      });
+        // DRAW IMAGE INSTEAD OF RECTANGLE
+        ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
 
-      socket.on("chat message", function (data) {
-        var item = document.createElement("li");
-        if (data.name === nickname) item.classList.add("my-message");
-
-        var html = `<div class="msg-name">${data.name}</div>`;
-        if (data.text) html += `<div class="msg-text">${data.text}</div>`;
-        if (data.file) {
-          if (data.fileType === "image") {
-            html += `<img src="${data.file}" class="chat-image" onload="scrollToBottom()" />`;
-            html += `<a href="${data.file}" download="image.png" class="download-link">⬇️ Save</a>`;
-          }
+        ctx.fillStyle = "#228b22";
+        for (let i = 0; i < pipes.length; i++) {
+          let p = pipes[i];
+          ctx.fillRect(p.x, 0, 50, p.topHeight); // Wider pipes
+          ctx.fillRect(p.x, p.topHeight + p.gap, 50, canvas.height);
         }
-        item.innerHTML = html;
-        messages.appendChild(item);
-        scrollToBottom();
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText("Score: " + score, 10, 30);
+      }
+      function updateGame() {
+        bird.velocity += bird.gravity;
+        bird.y += bird.velocity;
+
+        // Faster Pipes: Interval 100 (was 150)
+        if (frame % 100 === 0) {
+          let gap = 120; // Standard Gap
+          let topHeight = Math.random() * (canvas.height / 2);
+          pipes.push({ x: canvas.width, topHeight: topHeight, gap: gap });
+        }
+        for (let i = 0; i < pipes.length; i++) {
+          let p = pipes[i];
+          p.x -= 2; // Normal Speed (was 1.5)
+          if (
+            bird.x < p.x + 50 &&
+            bird.x + bird.width > p.x &&
+            (bird.y < p.topHeight || bird.y + bird.height > p.topHeight + p.gap)
+          ) {
+            endGame();
+          }
+          if (Math.abs(p.x - 10) < 2) score++;
+        }
+        if (pipes.length > 0 && pipes[0].x < -50) pipes.shift();
+        if (bird.y > canvas.height || bird.y < 0) endGame();
+        drawGameLoop();
+        frame++;
+      }
+      function endGame() {
+        gameRunning = false;
+        clearInterval(gameInterval);
+        socket.emit("submit score", { name: nickname, score: score });
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.font = "30px Arial";
+        ctx.fillText("Game Over!", 80, 200);
+        ctx.font = "20px Arial";
+        ctx.fillText("Score: " + score, 120, 240);
+      }
+      window.addEventListener("keydown", (e) => {
+        if (
+          document.getElementById("game-container").style.display === "flex" &&
+          e.code === "Space"
+        )
+          gameInput();
+      });
+      canvas.addEventListener("click", () => {
+        gameInput();
+      });
+
+      // LEADERBOARD
+      socket.on("update leaderboard", function (data) {
+        let list = document.getElementById("score-list");
+        if (data.length === 0) {
+          list.innerHTML = "No scores yet!";
+        } else {
+          list.innerHTML = data
+            .map(
+              (entry, i) =>
+                `<div class="score-item"><span>#${i + 1} <b>${
+                  entry.name
+                }</b></span> <span>${entry.score} pts</span></div>`
+            )
+            .join("");
+        }
       });
     </script>
   </body>
