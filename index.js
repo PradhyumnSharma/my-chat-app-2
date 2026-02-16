@@ -4,36 +4,55 @@ const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 
-// Allow big images (10MB limit)
 const io = new Server(server, {
-  maxHttpBufferSize: 1e7,
+  maxHttpBufferSize: 1e7, // 10MB limit for images/videos
 });
 
 app.use(express.static("public"));
 
-// Memory storage
+// --- MEMORY STORAGE ---
 let chatHistory = [];
+let videoUsers = new Set(); // Tracks who is in the video call
 
 io.on("connection", (socket) => {
-  // 1. Load old messages for new user
+  // 1. Send History & Video Count to new user
   chatHistory.forEach((msg) => {
     socket.emit("chat message", msg);
   });
+  socket.emit("update video count", videoUsers.size);
 
-  // 2. Listen for new messages
+  // 2. Handle Chat Messages
   socket.on("chat message", (msg) => {
     chatHistory.push(msg);
     io.emit("chat message", msg);
   });
 
-  // 3. Listen for Clear Chat
+  // 3. Handle Clear Chat
   socket.on("clear chat", () => {
-    chatHistory = []; // Wipe server memory
-    io.emit("chat cleared"); // Tell everyone to wipe screens
+    chatHistory = [];
+    io.emit("chat cleared");
+  });
+
+  // 4. Handle Video Join/Leave
+  socket.on("join video", () => {
+    videoUsers.add(socket.id);
+    io.emit("update video count", videoUsers.size);
+  });
+
+  socket.on("leave video", () => {
+    videoUsers.delete(socket.id);
+    io.emit("update video count", videoUsers.size);
+  });
+
+  // 5. Handle Disconnect (Tab Close)
+  socket.on("disconnect", () => {
+    if (videoUsers.has(socket.id)) {
+      videoUsers.delete(socket.id);
+      io.emit("update video count", videoUsers.size);
+    }
   });
 });
 
-// Use the port Render gives us, or 3000 locally
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log("Server running on port " + PORT);

@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Liquid Chat Pro</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prady's Chat App</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <script src="https://meet.jit.si/external_api.js"></script>
     <style>
       /* --- GLOBAL LAYOUT --- */
       html,
@@ -11,7 +15,7 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-      } /* Stop window scrolling */
+      }
       body {
         font-family: "Segoe UI", Tahoma, sans-serif;
         background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
@@ -36,11 +40,12 @@
       }
       .login-box {
         background: rgba(255, 255, 255, 0.05);
-        padding: 40px;
+        padding: 30px;
         border-radius: 20px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         text-align: center;
-        width: 300px;
+        width: 80%;
+        max-width: 300px;
       }
       .login-box input {
         width: 100%;
@@ -51,6 +56,7 @@
         background: rgba(0, 0, 0, 0.3);
         color: white;
         outline: none;
+        box-sizing: border-box;
       }
       .login-box button {
         width: 100%;
@@ -65,45 +71,111 @@
 
       /* --- TOP BAR --- */
       #top-bar {
-        padding: 15px;
+        padding: 10px 15px;
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
+        align-items: center;
         z-index: 500;
         background: linear-gradient(
           to bottom,
-          rgba(26, 26, 46, 0.95),
-          rgba(26, 26, 46, 0.8)
+          rgba(26, 26, 46, 0.98),
+          rgba(26, 26, 46, 0.9)
         );
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        height: 60px;
+        box-sizing: border-box;
       }
-      .clear-btn {
-        background: rgba(233, 69, 96, 0.2);
-        border: 1px solid #e94560;
-        color: white;
-        padding: 8px 15px;
-        border-radius: 20px;
-        cursor: pointer;
-        font-size: 0.8rem;
+      .app-name {
         font-weight: bold;
+        font-size: 1rem;
+        color: #e94560;
       }
-      .clear-btn:hover {
-        background: #e94560;
+      .nav-buttons {
+        display: flex;
+        gap: 8px;
+      }
+      .btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: bold;
+        white-space: nowrap;
+      }
+
+      /* --- VIDEO BUTTON & COUNTER --- */
+      .call-btn {
+        background: rgba(77, 181, 255, 0.15);
+        border-color: #4db5ff;
+        color: #4db5ff;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .counter-badge {
+        background: rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.7);
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 0.7rem;
+        transition: 0.3s;
+      }
+      .counter-active {
+        background: #ff4b2b;
+        color: white;
+        box-shadow: 0 0 8px #ff4b2b;
+      }
+
+      /* --- VIDEO CONTAINER --- */
+      #video-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 2000;
+        display: none;
+        flex-direction: column;
+      }
+      #jitsi-frame {
+        flex-grow: 1;
+        width: 100%;
+        border: none;
+      }
+      #exit-call-btn {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ff4b2b;
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 30px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 2100;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
       }
 
       /* --- MESSAGES AREA --- */
       #messages {
         list-style-type: none;
         margin: 0;
-        padding: 20px;
+        padding: 20px 15px 90px 15px;
         display: flex;
         flex-direction: column;
         gap: 15px;
-        overflow-y: auto; /* THIS makes the list scrollable */
+        overflow-y: auto;
         flex-grow: 1;
         scroll-behavior: smooth;
       }
       #messages > li {
-        padding: 12px 18px;
+        padding: 10px 16px;
         border-radius: 18px;
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.05);
@@ -117,39 +189,49 @@
         background: linear-gradient(135deg, #e94560, #c03546) !important;
         border: none !important;
       }
-
-      /* --- IMAGES & VIDEO --- */
-      .chat-image,
-      .chat-video {
+      .msg-name {
+        display: block;
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 3px;
+        font-weight: bold;
+      }
+      .msg-text {
+        display: block;
+        font-size: 0.95rem;
+        line-height: 1.4;
+      }
+      .chat-image {
         border-radius: 10px;
         margin-top: 8px;
         max-width: 100%;
-        width: 300px;
+        width: 250px;
         height: auto;
         display: block;
       }
       .download-link {
         display: inline-block;
-        margin-top: 8px;
-        font-size: 0.8rem;
+        margin-top: 5px;
+        font-size: 0.75rem;
         color: #4db5ff;
         text-decoration: none;
-        border: 1px solid #4db5ff;
-        padding: 4px 10px;
-        border-radius: 15px;
       }
 
-      /* --- INPUT BAR --- */
+      /* --- FIXED INPUT BAR --- */
       #form {
-        background: rgba(22, 33, 62, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 15px;
+        background: rgba(22, 33, 62, 0.98);
+        backdrop-filter: blur(15px);
+        padding: 10px;
         width: 100%;
+        position: fixed;
+        bottom: 0;
+        left: 0;
         display: flex;
         align-items: center;
         box-sizing: border-box;
-        gap: 10px;
+        gap: 8px;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
+        height: 70px;
       }
       #input {
         flex-grow: 1;
@@ -159,32 +241,69 @@
         background: rgba(255, 255, 255, 0.1);
         color: white;
         outline: none;
+        font-size: 1rem;
       }
       .media-btn {
         background: none;
         border: none;
         font-size: 1.5rem;
         cursor: pointer;
-        padding: 0 10px;
+        padding: 0 5px;
+        color: white;
+        flex-shrink: 0;
       }
+
       #send-btn {
         background: #e94560;
         border: none;
-        padding: 10px 25px;
+        padding: 0;
+        width: 50px;
+        height: 50px;
         border-radius: 25px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         color: white;
         font-weight: bold;
         cursor: pointer;
+        flex-shrink: 0;
+        transition: 0.2s;
       }
 
-      @keyframes popIn {
-        0% {
-          transform: translateY(20px);
-          opacity: 0;
+      /* --- MOBILE/DESKTOP SWITCHER --- */
+      .desktop-text {
+        display: block;
+        padding: 0 20px;
+      }
+      .mobile-icon {
+        display: none;
+      }
+
+      @media (max-width: 600px) {
+        .desktop-text {
+          display: none;
         }
-        100% {
-          transform: translateY(0);
-          opacity: 1;
+        .mobile-icon {
+          display: block;
+          font-size: 1.2rem;
+        }
+        #send-btn {
+          width: 45px;
+          height: 45px;
+          border-radius: 50%;
+          padding: 0;
+        }
+        #form {
+          padding: 8px;
+          gap: 5px;
+        }
+        #input {
+          padding: 10px 15px;
+          font-size: 0.95rem;
+        }
+        .media-btn {
+          font-size: 1.3rem;
+          padding: 0 2px;
         }
       }
     </style>
@@ -192,15 +311,28 @@
   <body>
     <div id="login-screen">
       <div class="login-box">
-        <h2 style="margin-top: 0">🔒 Secret Chat</h2>
-        <input type="password" id="passInput" placeholder="Password (1234)" />
+        <h2 style="margin-top: 0">😎 Prady's Chat</h2>
+        <input type="password" id="passInput" placeholder="Password (6969)" />
         <input type="text" id="nameInput" placeholder="Your Name" />
         <button onclick="attemptLogin()">Enter Chat</button>
       </div>
     </div>
 
+    <div id="video-container">
+      <div id="jitsi-frame"></div>
+      <button id="exit-call-btn" onclick="exitCall()">
+        ❌ End & Return to Chat
+      </button>
+    </div>
+
     <div id="top-bar">
-      <button id="clear-btn" class="clear-btn">🗑️ Clear History</button>
+      <div class="app-name">Prady's Chat</div>
+      <div class="nav-buttons">
+        <button class="btn call-btn" onclick="joinCall()">
+          📹 <span id="vid-counter" class="counter-badge">0</span>
+        </button>
+        <button id="clear-btn" class="btn">🗑️</button>
+      </div>
     </div>
 
     <ul id="messages"></ul>
@@ -219,16 +351,22 @@
       >
         📎
       </button>
-      <input id="input" autocomplete="off" placeholder="Type a message..." />
-      <button id="send-btn">Send</button>
+
+      <input id="input" autocomplete="off" placeholder="Message..." />
+
+      <button id="send-btn">
+        <span class="desktop-text">Send</span>
+        <span class="mobile-icon">➤</span>
+      </button>
     </form>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
       var socket = io();
       var nickname = "";
-      var secretPass = "1234";
-      var messages = document.getElementById("messages"); // GET THE BOX
+      var secretPass = "6969";
+      var messages = document.getElementById("messages");
+      var api = null;
 
       function attemptLogin() {
         var p = document.getElementById("passInput").value;
@@ -240,25 +378,66 @@
         }
       }
 
-      // --- FIX: SCROLL THE BOX, NOT THE WINDOW ---
+      function joinCall() {
+        socket.emit("join video");
+        document.getElementById("video-container").style.display = "flex";
+        const domain = "meet.jit.si";
+        const options = {
+          roomName: "PradysSuperSecretChatRoom99",
+          width: "100%",
+          height: "100%",
+          parentNode: document.querySelector("#jitsi-frame"),
+          userInfo: { displayName: nickname },
+          configOverwrite: {
+            startWithAudioMuted: true,
+            prejoinPageEnabled: false,
+            resolution: 720,
+          },
+          interfaceConfigOverwrite: {
+            TOOLBAR_BUTTONS: [
+              "microphone",
+              "camera",
+              "desktop",
+              "fullscreen",
+              "hangup",
+              "chat",
+              "raisehand",
+              "videoquality",
+              "tileview",
+            ],
+          },
+        };
+        api = new JitsiMeetExternalAPI(domain, options);
+      }
+
+      function exitCall() {
+        if (api) api.dispose();
+        document.getElementById("video-container").style.display = "none";
+        socket.emit("leave video");
+      }
+
+      socket.on("update video count", function (count) {
+        var badge = document.getElementById("vid-counter");
+        badge.innerText = count;
+        if (count > 0) badge.classList.add("counter-active");
+        else badge.classList.remove("counter-active");
+      });
+
       function scrollToBottom() {
         messages.scrollTop = messages.scrollHeight;
       }
 
-      // --- CLEAR CHAT ---
       document
         .getElementById("clear-btn")
         .addEventListener("click", function () {
-          if (confirm("Delete all messages for everyone?")) {
+          if (confirm("Delete history?")) {
             socket.emit("clear chat");
           }
         });
-
       socket.on("chat cleared", function () {
         messages.innerHTML = "";
       });
 
-      // --- SEND MESSAGES ---
       var form = document.getElementById("form");
       var input = document.getElementById("input");
       var fileInput = document.getElementById("fileInput");
@@ -288,27 +467,21 @@
         reader.readAsDataURL(file);
       });
 
-      // --- RECEIVE MESSAGES ---
       socket.on("chat message", function (data) {
         var item = document.createElement("li");
         if (data.name === nickname) item.classList.add("my-message");
 
-        var html = "<b>" + data.name + "</b>";
-        if (data.text) html += "<span>" + data.text + "</span>";
-
+        var html = `<div class="msg-name">${data.name}</div>`;
+        if (data.text) html += `<div class="msg-text">${data.text}</div>`;
         if (data.file) {
           if (data.fileType === "image") {
-            html += `<br><img src="${data.file}" class="chat-image" onload="scrollToBottom()" />`;
+            html += `<img src="${data.file}" class="chat-image" onload="scrollToBottom()" />`;
             html += `<a href="${data.file}" download="image.png" class="download-link">⬇️ Save</a>`;
-          } else {
-            html += `<br><video src="${data.file}" class="chat-video" controls></video>`;
           }
         }
-
         item.innerHTML = html;
         messages.appendChild(item);
-
-        scrollToBottom(); // SCROLL NOW
+        scrollToBottom();
       });
     </script>
   </body>
